@@ -21,8 +21,9 @@ app.use(express.urlencoded({
 
 app.use(cookieParser())
 
-app.get("/hello", (req, res) => {
-    res.send("Hello world")
-})
+
+import authRoutes from './routes/auth.route.js'
+
+app.use('/api/v1/auth', authRoutes);
 
 export default app;
