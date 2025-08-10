@@ -5,6 +5,7 @@ import { apiError } from "../utils/apiError.js";
 import getEmailTemplate from "../utils/emailTemplate.js";
 import sendEmail from "../config/sendEmail.js";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 
 const signup = asyncHandler(async (req, res) => {
     const { username, email, password } = req.body;
@@ -47,4 +48,78 @@ const signup = asyncHandler(async (req, res) => {
     );
 })
 
-export { signup };
+const verifyEmail = asyncHandler(async (req, res) => {
+    // validate fields
+    const { verificationCode, verificationToken } = req.body;
+    if (!verificationCode || !verificationToken) {
+        throw new apiError(400, "Verification code and token are required");
+    }
+    // decode token
+    let payload;
+    try {
+        payload = jwt.verify(verificationToken, process.env.ACCESS_TOKEN_SECRET);
+    } catch (err) {
+        throw new apiError(401, "Invalid or expired verification token");
+    }
+    // validate token
+    if (payload.purpose !== "email_verification" || !payload.userId) {
+        throw new apiError(401, "Invalid verification token");
+    }
+
+
+    // find user
+    const user = await User.findById(payload.userId);
+    if (!user) {
+        throw new apiError(404, "User not found");
+    }
+    // check if user is already verified
+    if (user.isVerified) {
+        throw new apiError(400, "User already verified. Please try logging in.");
+    }
+
+    
+    // check if user has verification code
+    if (!user.verificationToken || !user.verificationTokenExpires) {
+        throw new apiError(400, "No verification code found. Please sign up again.");
+    }
+    // check if verification code is valid
+    if (user.verificationTokenExpires < Date.now()) {
+        throw new apiError(400, "Verification code expired. Please sign up again.");
+    }
+    // hash verification code and check if correct
+    const hashedCode = crypto.createHash("sha256").update(verificationCode).digest("hex");
+    if (hashedCode !== user.verificationToken) {
+        throw new apiError(400, "Invalid verification code");
+    }
+
+    user.isVerified = true;
+    user.verificationToken = undefined;
+    user.verificationTokenExpires = undefined;
+    await user.save();
+
+    // generate login token
+    const loginToken = user.generateAccessToken();
+    const options = {
+        httpOnly : true,
+        secure : true
+    }
+    
+    return res.status(200)
+    .cookie("accessToken", loginToken, options)
+    .json(
+        new apiResponse(
+            200, 
+            {
+                token: loginToken, 
+                user: { 
+                    id: user._id, 
+                    username: user.username, 
+                    email: user.email 
+                } 
+            }, 
+            "Email verified and user logged in"
+        )
+    );
+});
+
+export { signup, verifyEmail };
