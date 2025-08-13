@@ -92,6 +92,7 @@ const verifyEmail = asyncHandler(async (req, res) => {
         throw new apiError(400, "Invalid verification code");
     }
 
+    // all checks completed, email verified
     user.isVerified = true;
     user.verificationToken = undefined;
     user.verificationTokenExpires = undefined;
@@ -122,4 +123,80 @@ const verifyEmail = asyncHandler(async (req, res) => {
     );
 });
 
-export { signup, verifyEmail };
+const login = asyncHandler(async (req, res) => {
+    const { email, password } = req.body;
+
+    // Validate fields
+    if (!email || !password) {
+        throw new apiError(400, "Email and password are required");
+    }
+
+    // Find user
+    const user = await User.findOne({ email });
+    if (!user) {
+        throw new apiError(404, "User does not exist");
+    }
+
+    // Check password
+    const isValidPassword = await user.validatePassword(password);
+    if (!isValidPassword) {
+        throw new apiError(401, "User credentials are invalid");
+    }
+
+    if(user.isVerified){
+        // User is verified, proceed with login
+
+        // generate login token
+        const loginToken = user.generateAccessToken();
+        const options = {
+            httpOnly : true,
+            secure : true
+        }
+
+        res.status(200)
+        .cookie("accessToken", loginToken, options)
+        .json(
+            new apiResponse(
+                200,
+                {
+                    token: loginToken,
+                    user: {
+                        id: user._id,
+                        username: user.username,
+                        email: user.email
+                    }
+                },
+                "Login successful"
+            )
+        );
+
+    }
+    else{
+        // verify user
+
+        // generate verification code
+        const verificationCode = user.generateVerificationCode();
+        await user.save();
+
+        // Send verification email
+        const emailHTML = getEmailTemplate(user.username, verificationCode);
+        await sendEmail({
+            to: user.email,
+            subject: "Verify your email - Code valid for 1 hour",
+            html: emailHTML
+        });
+
+        const tempToken = jwt.sign(
+            { userId: user._id, purpose: "email_verification" },
+            process.env.ACCESS_TOKEN_SECRET,
+            { expiresIn: "1h" }
+        );
+
+
+        return res.status(200).json(
+            new apiResponse(200, { verificationToken: tempToken }, "Verification code sent to email")
+        );
+    }
+});
+
+export { signup, verifyEmail, login };
