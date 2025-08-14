@@ -48,7 +48,8 @@ const signup = asyncHandler(async (req, res) => {
 
 const verifyEmail = asyncHandler(async (req, res) => {
     // validate fields
-    const { verificationCode, verificationToken } = req.body;
+    const verificationToken = req.header("Authorization")?.replace("Bearer ", "");
+    const { verificationCode} = req.body;
     if (!verificationCode || !verificationToken) {
         throw new apiError(400, "Verification code and token are required");
     }
