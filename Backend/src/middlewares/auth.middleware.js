@@ -19,7 +19,7 @@ const verifyJWT = asyncHandler(async (req, res, next) => {
         throw new apiError(401, "Unauthorized access");
     }
     
-    if(!decoded?._id){
+    if(!decoded._id){
         throw new apiError(401, "Unauthorized access");
     }
 
