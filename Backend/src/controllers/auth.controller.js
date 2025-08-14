@@ -153,7 +153,7 @@ const login = asyncHandler(async (req, res) => {
             secure : true
         }
 
-        res.status(200)
+        return res.status(200)
         .cookie("accessToken", loginToken, options)
         .json(
             new apiResponse(
