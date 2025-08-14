@@ -199,4 +199,15 @@ const login = asyncHandler(async (req, res) => {
     }
 });
 
-export { signup, verifyEmail, login };
+const logout = asyncHandler(async (req, res) => {
+    const options = {
+        httpOnly: true,
+        secure: true
+    }
+
+    return res.status(200)
+        .clearCookie("accessToken", options)
+        .json(new apiResponse(200, {}, "Logout successful"));
+})
+
+export { signup, verifyEmail, login, logout };
