@@ -77,7 +77,7 @@ export default function VerifyEmail() {
         <CardHeader className="space-y-1 text-center">
           <CardTitle className="text-2xl font-semibold text-slate-800">Verify Email</CardTitle>
           <CardDescription className="text-slate-600">
-            Enter the code sent to your email. Expires in 1 hour.
+            Enter the code sent to your email. Expires in 5 hours.
           </CardDescription>
         </CardHeader>
         <CardContent>
