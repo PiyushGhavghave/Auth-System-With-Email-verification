@@ -64,7 +64,7 @@ userSchema.methods.generateAccessToken = function() {
 userSchema.methods.generateVerificationCode = function() {
     const code = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit code
     this.verificationToken = crypto.createHash("sha256").update(code).digest("hex");
-    this.verificationTokenExpires = Date.now() + 60 * 60 * 1000; // 1 hour
+  this.verificationTokenExpires = Date.now() + 5 * 60 * 60 * 1000; // 5 hours
     return code; // return plain code to send via email
 }
 

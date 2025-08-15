@@ -30,14 +30,14 @@ const signup = asyncHandler(async (req, res) => {
     const emailHTML = getEmailTemplate(user.username, verificationCode);
     await sendEmail({
         to: user.email,
-        subject: "Verify your email - Code valid for 1 hour",
+        subject: "Verify your email - Code valid for 5 hours",
         html: emailHTML
     });
 
     const tempToken = jwt.sign(
         { userId: user._id, purpose: "email_verification" },
         process.env.ACCESS_TOKEN_SECRET,
-        { expiresIn: "1h" }
+        { expiresIn: "5h" }
     );
 
     
@@ -101,7 +101,7 @@ const verifyEmail = asyncHandler(async (req, res) => {
     const loginToken = user.generateAccessToken();
     const options = {
         httpOnly : true,
-        secure : true
+        secure : true,
     }
     
     return res.status(200)
@@ -149,7 +149,7 @@ const login = asyncHandler(async (req, res) => {
         const loginToken = user.generateAccessToken();
         const options = {
             httpOnly : true,
-            secure : true
+            secure : true,
         }
 
         return res.status(200)
@@ -181,14 +181,14 @@ const login = asyncHandler(async (req, res) => {
         const emailHTML = getEmailTemplate(user.username, verificationCode);
         await sendEmail({
             to: user.email,
-            subject: "Verify your email - Code valid for 1 hour",
+            subject: "Verify your email - Code valid for 5 hours",
             html: emailHTML
         });
 
         const tempToken = jwt.sign(
             { userId: user._id, purpose: "email_verification" },
             process.env.ACCESS_TOKEN_SECRET,
-            { expiresIn: "1h" }
+            { expiresIn: "5h" }
         );
 
 
@@ -201,7 +201,7 @@ const login = asyncHandler(async (req, res) => {
 const logout = asyncHandler(async (req, res) => {
     const options = {
         httpOnly: true,
-        secure: true
+        secure: true,
     }
 
     return res.status(200)

@@ -1,56 +1,36 @@
-import { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import * as api from "../api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useNavigate } from "react-router-dom";
-import { signup } from "../features/authSlice";
 
-export default function SignUp() {
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const { loading, error } = useSelector((state) => ({
-    loading: state.auth.loading,
-    error: state.auth.error,
-  }));
-
-  const [formData, setFormData] = useState({
-    username: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-  });
+export default function Signup() {
+  const [form, setForm] = useState({ username: "", email: "", password: "" });
   const [focusedField, setFocusedField] = useState("");
-  const [localError, setLocalError] = useState("");
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+  const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
-  const handleSubmit = async (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
-    setLocalError("");
-    if (formData.password !== formData.confirmPassword) {
-      return setLocalError("Passwords do not match");
-    }
-    const res = await dispatch(
-      signup({
-        username: formData.username,
-        email: formData.email,
-        password: formData.password,
-      })
-    ).unwrap().catch(() => null);
-    if (res) {
+    setError("");
+    try {
+      const data = await api.signup(form.username, form.email, form.password);
+      const verificationToken = data.verificationToken;
+      if (!verificationToken) throw new Error("No verification token returned");
+      sessionStorage.setItem("verificationToken", verificationToken);
+      sessionStorage.setItem("verificationEmail", form.email);
       navigate("/verify-email");
+    } catch (err) {
+      setError(err.message || "Signup failed");
     }
   };
 
-  const isFieldFocused = (fieldName) => focusedField === fieldName || formData[fieldName];
+  const isFieldFocused = (fieldName) => focusedField === fieldName || form[fieldName];
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 p-4">
@@ -60,14 +40,14 @@ export default function SignUp() {
           <CardDescription className="text-slate-600">Enter your details to get started</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={onSubmit} className="space-y-6">
             <div className="relative">
               <Input
                 id="username"
                 name="username"
                 type="text"
-                value={formData.username}
-                onChange={handleInputChange}
+                value={form.username}
+                onChange={onChange}
                 onFocus={() => setFocusedField("username")}
                 onBlur={() => setFocusedField("")}
                 className="peer h-12 pt-4 pb-2 px-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-0 transition-colors"
@@ -89,8 +69,8 @@ export default function SignUp() {
                 id="email"
                 name="email"
                 type="email"
-                value={formData.email}
-                onChange={handleInputChange}
+                value={form.email}
+                onChange={onChange}
                 onFocus={() => setFocusedField("email")}
                 onBlur={() => setFocusedField("")}
                 className="peer h-12 pt-4 pb-2 px-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-0 transition-colors"
@@ -112,8 +92,8 @@ export default function SignUp() {
                 id="password"
                 name="password"
                 type="password"
-                value={formData.password}
-                onChange={handleInputChange}
+                value={form.password}
+                onChange={onChange}
                 onFocus={() => setFocusedField("password")}
                 onBlur={() => setFocusedField("")}
                 className="peer h-12 pt-4 pb-2 px-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-0 transition-colors"
@@ -130,39 +110,14 @@ export default function SignUp() {
               </Label>
             </div>
 
-            <div className="relative">
-              <Input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                value={formData.confirmPassword}
-                onChange={handleInputChange}
-                onFocus={() => setFocusedField("confirmPassword")}
-                onBlur={() => setFocusedField("")}
-                className="peer h-12 pt-4 pb-2 px-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-0 transition-colors"
-                placeholder=" "
-                required
-              />
-              <Label
-                htmlFor="confirmPassword"
-                className={`absolute left-3 transition-all duration-200 pointer-events-none ${
-                  isFieldFocused("confirmPassword") ? "top-1 text-xs text-blue-600" : "top-3 text-base text-slate-500"
-                }`}
-              >
-                Confirm Password
-              </Label>
-            </div>
-
-            {(localError || error) && <p className="text-sm text-red-600 text-center">{localError || error}</p>}
-
             <Button
               type="submit"
               className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
-              disabled={loading}
             >
-              {loading ? "Creating account..." : "Sign Up"}
+              Sign Up
             </Button>
 
+            {error && <p className="text-center text-sm text-red-500">{error}</p>}
             <p className="text-center text-sm text-slate-600">
               Already have an account?{" "}
               <a href="/login" className="text-blue-600 hover:text-blue-700 font-medium">
