@@ -99,6 +99,7 @@ export default function VerifyEmail() {
               ))}
             </div>
 
+
             {error && <p className="text-center text-red-600 text-sm">{error}</p>}
 
             <Button

@@ -105,6 +105,7 @@ export default function Login() {
                   isFieldFocused("password")
                     ? "top-1 text-xs text-blue-600"
                     : "top-3 text-base text-slate-500"
+
                 }`}
               >
                 Password
@@ -128,6 +129,7 @@ export default function Login() {
                 href="/signup"
                 className="text-blue-600 hover:text-blue-700 font-medium"
               >
+
                 Sign Up
               </a>
             </p>

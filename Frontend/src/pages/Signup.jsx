@@ -31,6 +31,7 @@ export default function Signup() {
 
   const isFieldFocused = (fieldName) => focusedField === fieldName || form[fieldName];
 
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 p-4">
       <Card className="w-full max-w-md shadow-lg border-0 bg-white/80 backdrop-blur-sm">
@@ -117,7 +118,6 @@ export default function Signup() {
             </Button>
 
             {error && <p className="text-center text-sm text-red-500">{error}</p>}
-
             <p className="text-center text-sm text-slate-600">
               Already have an account?{" "}
               <a href="/login" className="text-blue-600 hover:text-blue-700 font-medium">
