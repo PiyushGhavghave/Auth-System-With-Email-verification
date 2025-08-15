@@ -101,8 +101,7 @@ const verifyEmail = asyncHandler(async (req, res) => {
     const loginToken = user.generateAccessToken();
     const options = {
         httpOnly : true,
-        secure : false,
-        sameSite : "none"
+        secure : true,
     }
     
     return res.status(200)
@@ -150,8 +149,7 @@ const login = asyncHandler(async (req, res) => {
         const loginToken = user.generateAccessToken();
         const options = {
             httpOnly : true,
-            secure : false,
-            sameSite : "none"
+            secure : true,
         }
 
         return res.status(200)
@@ -203,8 +201,7 @@ const login = asyncHandler(async (req, res) => {
 const logout = asyncHandler(async (req, res) => {
     const options = {
         httpOnly: true,
-        secure: false,
-        sameSite: "none"
+        secure: true,
     }
 
     return res.status(200)
